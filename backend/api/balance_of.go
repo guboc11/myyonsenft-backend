@@ -1,4 +1,4 @@
-package contractcall
+package api
 
 import (
 	"context"

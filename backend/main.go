@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"guboc11.com/m/contractcall"
+	"guboc11.com/m/api"
 )
 
 func main() {
@@ -13,13 +13,13 @@ func main() {
 
 	http.HandleFunc("/mint", func(w http.ResponseWriter, r *http.Request) {
 		address := r.URL.Query().Get("address")
-		contractcall.Mint(address)
+		api.Mint(address)
 		w.Write([]byte("mint success"))
 	})
 
 	http.HandleFunc("/balanceOf", func(w http.ResponseWriter, r *http.Request) {
 		address := r.URL.Query().Get("address")
-		balance := contractcall.GetBalanceOf(address)
+		balance := api.GetBalanceOf(address)
 
 		// JSON으로 변환하여 응답
 		w.Header().Set("Content-Type", "application/json")

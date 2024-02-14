@@ -1,4 +1,4 @@
-package contractcall
+package api
 
 func Mint(address string) {
 
