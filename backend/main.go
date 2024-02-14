@@ -21,7 +21,7 @@ type Payload struct {
 	Params  []any  `json:"params"`
 }
 
-func viewBalanceOf() {
+func viewBalanceOf(address string) interface{} {
 	// ethereum client 생성
 	client, err := ethclient.Dial("https://rpc.holesky.ethpandaops.io")
 	if err != nil {
@@ -42,7 +42,7 @@ func viewBalanceOf() {
 		log.Fatal(err)
 	}
 
-	from := common.HexToAddress("0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145")
+	from := common.HexToAddress(address)
 	to := common.HexToAddress("0xd16d41635c7ece3c13b2c7eae094a92adf41bb2a")
 
 	data, err := abi.Pack("balanceOf", from)
@@ -70,6 +70,7 @@ func viewBalanceOf() {
 	}
 
 	fmt.Println("result", returnValue)
+	return returnValue[0]
 }
 
 func mint(w http.ResponseWriter, r *http.Request) {
@@ -78,8 +79,10 @@ func mint(w http.ResponseWriter, r *http.Request) {
 }
 
 func getBalanceOf(w http.ResponseWriter, r *http.Request) {
-	viewBalanceOf()
-	w.Write([]byte("get balance of"))
+	address := r.URL.Query().Get("address")
+	returnValue := viewBalanceOf(address)
+	result := fmt.Sprintf("get balance of %s : %s", address, returnValue)
+	w.Write([]byte(result))
 }
 
 func main() {
