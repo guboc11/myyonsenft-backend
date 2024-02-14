@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func ViewBalanceOf(address string) interface{} {
+func GetBalanceOf(address string) interface{} {
 	// ethereum client 생성
 	client, err := ethclient.Dial("https://rpc.holesky.ethpandaops.io")
 	if err != nil {
