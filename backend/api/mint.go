@@ -2,12 +2,12 @@ package api
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -16,30 +16,24 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func Mint(client *ethclient.Client, address string) {
+type TxStatus struct {
+	Tx        string    `json:"tx"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txStatusQueue chan TxStatus) {
 	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		log.Fatal("error casting public key to ECDSA")
-	}
 
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 	toAddress := common.HexToAddress(os.Getenv("CONTRACT_ADDRESS"))
 
 	value := big.NewInt(0)
-
 	gasLimit := uint64(10_000_000)
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	gasPrice.Mul(gasPrice, big.NewInt(3)) // test 용 : transaction 을 성공시키기 위해
-
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// 호출할 함수와 인자 데이터 ABI 인코딩
 	abi, err := abi.JSON(strings.NewReader(os.Getenv("CONTRACT_ABI")))
@@ -51,6 +45,8 @@ func Mint(client *ethclient.Client, address string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	nonce := <-nonceQueue
 
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 	chainID, err := client.NetworkID(context.Background())
@@ -66,6 +62,12 @@ func Mint(client *ethclient.Client, address string) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("tx sent: %s, nonce :%d\n", signedTx.Hash().Hex(), nonce)
-	fmt.Println("mint done!!!")
+	str := fmt.Sprintf("mint done!!! tx sent: %s, nonce :%d\n", signedTx.Hash().Hex(), nonce)
+	fmt.Print(str)
+
+	txStatusQueue <- TxStatus{
+		Tx:        signedTx.Hash().Hex(),
+		Status:    "SUCCESS",
+		CreatedAt: time.Now(),
+	}
 }
