@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -56,26 +58,30 @@ func simpleAPICall() {
 	log.Println("result", result)
 }
 
+func simpleContractCall() {
+	client, err := ethclient.Dial("https://rpc.holesky.ethpandaops.io")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	msg := ethereum.CallMsg{}
+	client.CallContract(context.Background(), msg, nil)
+	fmt.Println("called msg")
+
+}
+
 func mint(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("mint success"))
 
 }
 
 func getBalanceOf(w http.ResponseWriter, r *http.Request) {
-	simpleAPICall()
+	// simpleAPICall()
+	simpleContractCall()
 	w.Write([]byte("get balance of"))
 }
 
 func main() {
-	fmt.Println("hello Planetarium")
-	client, err := ethclient.Dial("https://mainnet.infura.io")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("we have a connection")
-	_ = client // we'll use this in the upcoming sections
-
 	http.HandleFunc("/mint", mint)
 	http.HandleFunc("/balanceOf", getBalanceOf)
 
