@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"guboc11.com/m/contractcall"
 )
 
 func mint(w http.ResponseWriter, r *http.Request) {
@@ -13,7 +15,7 @@ func mint(w http.ResponseWriter, r *http.Request) {
 
 func getBalanceOf(w http.ResponseWriter, r *http.Request) {
 	address := r.URL.Query().Get("address")
-	returnValue := viewBalanceOf(address)
+	returnValue := contractcall.ViewBalanceOf(address)
 	result := fmt.Sprintf("get balance of %s : %s", address, returnValue)
 	w.Write([]byte(result))
 }
