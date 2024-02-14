@@ -28,5 +28,7 @@ func main() {
 
 	})
 
+	api.Mint("0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145")
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
