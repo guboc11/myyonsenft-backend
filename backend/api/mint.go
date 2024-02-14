@@ -40,23 +40,14 @@ func Mint(address string) {
 	}
 
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+	toAddress := common.HexToAddress("0xd16d41635C7ECe3c13B2c7Eae094a92aDF41bB2a")
 
-	fmt.Println("fromAddress :", fromAddress)
+	// fmt.Println("fromAddress :", fromAddress)
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// var nonce uint64 = 58
-	fmt.Println("nonce :", nonce)
-	value := big.NewInt(0)         // in wei (1 eth)
-	gasLimit := uint64(10_000_000) // in units
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("gasPrice :", gasPrice)
-	toAddress := common.HexToAddress("0xd16d41635C7ECe3c13B2c7Eae094a92aDF41bB2a")
-
 	// 호출할 함수와 인자 데이터 ABI 인코딩
 	const definition = `[{
     "inputs": [
@@ -77,11 +68,19 @@ func Mint(address string) {
 		log.Fatal(err)
 	}
 	userAddress := common.HexToAddress(address)
-	fmt.Println("userAddress :", userAddress)
+	// fmt.Println("userAddress :", userAddress)
 	data, err := abi.Pack("mint", userAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("nonce :", nonce)
+	value := big.NewInt(0)         // in wei (1 eth)
+	gasLimit := uint64(10_000_000) // in units
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	// test 용 : transaction 을 성공시키기 위해
+	gasPrice.Mul(gasPrice, big.NewInt(3))
+	fmt.Println("gasPrice :", gasPrice)
 
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 	chainID, err := client.NetworkID(context.Background())
@@ -97,7 +96,7 @@ func Mint(address string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("tx sent: %s\n", signedTx.Hash().Hex())
+	fmt.Printf("tx sent: %s, nonce :%d\n", signedTx.Hash().Hex(), nonce)
 
 	fmt.Println("mint done!!!")
 }
