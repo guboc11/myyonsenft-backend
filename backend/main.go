@@ -6,13 +6,6 @@ import (
 	"net/http"
 )
 
-type Payload struct {
-	Jsonrpc string `json:"jsonrpc"`
-	ID      int64  `json:"id"`
-	Method  string `json:"method"`
-	Params  []any  `json:"params"`
-}
-
 func mint(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("mint success"))
 
