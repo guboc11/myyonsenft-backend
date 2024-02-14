@@ -12,6 +12,8 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	http.HandleFunc("/mint", func(w http.ResponseWriter, r *http.Request) {
+		address := r.URL.Query().Get("address")
+		contractcall.Mint(address)
 		w.Write([]byte("mint success"))
 	})
 
