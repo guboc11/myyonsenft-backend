@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -17,9 +17,13 @@ func main() {
 
 	http.HandleFunc("/balanceOf", func(w http.ResponseWriter, r *http.Request) {
 		address := r.URL.Query().Get("address")
-		returnValue := contractcall.GetBalanceOf(address)
-		result := fmt.Sprintf("get balance of %s : %s", address, returnValue)
-		w.Write([]byte(result))
+		balance := contractcall.GetBalanceOf(address)
+
+		// JSON으로 변환하여 응답
+		w.Header().Set("Content-Type", "application/json")
+		// w.Write([]byte(result))
+		json.NewEncoder(w).Encode(balance)
+
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

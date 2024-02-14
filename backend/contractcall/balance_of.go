@@ -2,7 +2,6 @@ package contractcall
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/big"
 	"strings"
@@ -13,7 +12,12 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func GetBalanceOf(address string) interface{} {
+type Balance struct {
+	// Balance big.Int `json:"balance"`
+	Balance string `json:"balance"`
+}
+
+func GetBalanceOf(address string) Balance {
 	// ethereum client 생성
 	client, err := ethclient.Dial("https://rpc.holesky.ethpandaops.io")
 	if err != nil {
@@ -36,7 +40,6 @@ func GetBalanceOf(address string) interface{} {
 
 	from := common.HexToAddress(address)
 	to := common.HexToAddress("0xd16d41635c7ece3c13b2c7eae094a92adf41bb2a")
-
 	data, err := abi.Pack("balanceOf", from)
 	if err != nil {
 		log.Fatal(err)
@@ -50,17 +53,27 @@ func GetBalanceOf(address string) interface{} {
 		Value: big.NewInt(0),
 	}
 
-	resp, err := client.CallContract(context.Background(), msg, nil)
+	response, err := client.CallContract(context.Background(), msg, nil)
 	if err != nil {
 		log.Fatalf("Call Contract error : %v", err)
 	}
 
 	// uint256 반환값 추출
-	returnValue, err := abi.Unpack("balanceOf", resp)
+	var returnValue interface{}
+	err = abi.UnpackIntoInterface(&returnValue, "balanceOf", response)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if returnValue == nil {
+		log.Fatal("return value is empty")
+	}
+	bal, ok := returnValue.(*big.Int)
+	if !ok {
+		log.Println(returnValue)
+		log.Fatal("Convert Error")
+	}
+	// bal, ok := returnValue.(string)
 
-	fmt.Println("result", returnValue)
-	return returnValue[0]
+	balance := Balance{Balance: bal.String()}
+	return balance
 }
