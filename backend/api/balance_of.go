@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"math/big"
+	"os"
 	"strings"
 
 	"github.com/ethereum/go-ethereum"
@@ -17,37 +18,24 @@ type Balance struct {
 	Balance string `json:"balance"`
 }
 
-func GetBalanceOf(address string) Balance {
-	// ethereum client 생성
-	client, err := ethclient.Dial("https://rpc.holesky.ethpandaops.io")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func GetBalanceOf(client *ethclient.Client, address string) Balance {
 	// 호출할 함수와 인자 데이터 ABI 인코딩
-	const definition = `
-	[{"inputs":[{"internalType":"address","name":"account","type":"address"}],
-	"name":"balanceOf",
-	"outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
-	"stateMutability":"view",
-	"type":"function"}]
-	`
-
-	abi, err := abi.JSON(strings.NewReader(definition))
+	abi, err := abi.JSON(strings.NewReader(os.Getenv("CONTRACT_ABI")))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	from := common.HexToAddress(address)
-	to := common.HexToAddress("0xd16d41635c7ece3c13b2c7eae094a92adf41bb2a")
-	data, err := abi.Pack("balanceOf", from)
+	fromAddress := common.HexToAddress(address)
+	toAddress := common.HexToAddress(os.Getenv("CONTRACT_ADDRESS"))
+
+	data, err := abi.Pack("balanceOf", fromAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	msg := ethereum.CallMsg{
-		From:  from,
-		To:    &to,
+		From:  fromAddress,
+		To:    &toAddress,
 		Gas:   200_000_000,
 		Data:  data,
 		Value: big.NewInt(0),
@@ -67,13 +55,11 @@ func GetBalanceOf(address string) Balance {
 	if returnValue == nil {
 		log.Fatal("return value is empty")
 	}
-	bal, ok := returnValue.(*big.Int)
+	balance, ok := returnValue.(*big.Int)
 	if !ok {
 		log.Println(returnValue)
 		log.Fatal("Convert Error")
 	}
-	// bal, ok := returnValue.(string)
 
-	balance := Balance{Balance: bal.String()}
-	return balance
+	return Balance{Balance: balance.String()}
 }
