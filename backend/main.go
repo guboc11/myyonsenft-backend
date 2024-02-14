@@ -21,6 +21,7 @@ func getBalanceOf(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	http.HandleFunc("/mint", mint)
 	http.HandleFunc("/balanceOf", getBalanceOf)
