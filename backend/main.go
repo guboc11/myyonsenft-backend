@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type Payload struct {
@@ -66,6 +68,13 @@ func getBalanceOf(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fmt.Println("hello Planetarium")
+	client, err := ethclient.Dial("https://mainnet.infura.io")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("we have a connection")
+	_ = client // we'll use this in the upcoming sections
 
 	http.HandleFunc("/mint", mint)
 	http.HandleFunc("/balanceOf", getBalanceOf)
