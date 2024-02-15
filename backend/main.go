@@ -20,6 +20,9 @@ var txStatusQueue chan api.TxStatus
 var client *ethclient.Client
 
 func init() {
+	// set log flags
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	// load .env file
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -31,9 +34,6 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// set log flags
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// initialize nonce
 	currentNonce, err = client.PendingNonceAt(context.Background(), common.HexToAddress(os.Getenv("DELIGATOR_ADDRESS")))
