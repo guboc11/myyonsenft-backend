@@ -31,6 +31,7 @@ CONTRACT_ADDRESS={contract_address}
 
 ## Run api
 ```bash
+// check if localhost:8080 is open and available
 go run main.go
 ```
 
