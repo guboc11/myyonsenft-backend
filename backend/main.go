@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -51,13 +52,20 @@ func main() {
 	// /mint endpoint
 	go http.HandleFunc("/mint", func(w http.ResponseWriter, r *http.Request) {
 		address := r.URL.Query().Get("address")
-		go api.Mint(client, address, nonceQueue, txStatusQueue)
+		// ethereum address 유효성 검사
+		if !isValidEthereumAddress(address) {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Invalid address format")
+			return
+		}
 
+		go api.Mint(client, address, nonceQueue, txStatusQueue)
 		nonceQueue <- currentNonce
 		currentNonce++
 
 		// JSON으로 변환하여 응답
 		txStatus := <-txStatusQueue
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(txStatus)
 	})
@@ -65,9 +73,16 @@ func main() {
 	// /balanceOf endpoint
 	go http.HandleFunc("/balanceOf", func(w http.ResponseWriter, r *http.Request) {
 		address := r.URL.Query().Get("address")
-		balance := api.GetBalanceOf(client, address)
+		// ethereum address 유효성 검사
+		if !isValidEthereumAddress(address) {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Invalid address format")
+			return
+		}
 
 		// JSON으로 변환하여 응답
+		balance := api.GetBalanceOf(client, address)
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(balance)
 	})
@@ -75,12 +90,24 @@ func main() {
 	// /history endpoint
 	go http.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
 		address := r.URL.Query().Get("address")
-		txHistory := api.GetTxHistory(client, address)
+		// ethereum address 유효성 검사
+		if !isValidEthereumAddress(address) {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Invalid address format")
+			return
+		}
 
 		// JSON으로 변환하여 응답
+		txHistory := api.GetTxHistory(client, address)
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(txHistory)
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func isValidEthereumAddress(address string) bool {
+	re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+	return re.MatchString(address)
 }
