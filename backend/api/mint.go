@@ -67,6 +67,9 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 	value := big.NewInt(0)
 	gasLimit := uint64(10_000_000)
 	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 	gasPrice.Mul(gasPrice, big.NewInt(3)) // test 용 : transaction 을 성공시키기 위해
 
 	// 호출할 함수와 인자 데이터 ABI 인코딩
