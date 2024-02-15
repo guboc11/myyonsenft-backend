@@ -20,6 +20,9 @@ var txStatusQueue chan api.TxStatus
 var client *ethclient.Client
 
 func init() {
+	// set log flags
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	// load .env file
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -31,9 +34,6 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// set log flags
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// initialize nonce
 	currentNonce, err = client.PendingNonceAt(context.Background(), common.HexToAddress(os.Getenv("DELIGATOR_ADDRESS")))
@@ -70,6 +70,16 @@ func main() {
 		// JSON으로 변환하여 응답
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(balance)
+	})
+
+	// /history endpoint
+	go http.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
+		address := r.URL.Query().Get("address")
+		txHistory := api.GetTxHistory(client, address)
+
+		// JSON으로 변환하여 응답
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(txHistory)
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

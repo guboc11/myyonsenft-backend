@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
@@ -18,8 +19,41 @@ import (
 
 type TxStatus struct {
 	Tx        string    `json:"tx"`
+	Nonce     uint64    `json:"nonce"`
 	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+var txHistory map[string][]TxStatus
+
+func init() {
+	txHistory = make(map[string][]TxStatus)
+
+	// txHistory 변수에 기존 txHistory.json 파일 내용 불러오기
+	existingData, err := os.ReadFile("txHistory.json")
+	if err != nil && !os.IsNotExist(err) {
+		log.Fatalf("failed to read JSON file: %v", err)
+	}
+
+	if len(existingData) > 0 {
+		if err := json.Unmarshal(existingData, &txHistory); err != nil {
+			log.Fatalf("failed to unmarshal existing JSON: %v", err)
+		}
+	} else {
+		// txHistory.json 파일이 없으면 빈 값을 넣어 생성
+		writeTxHistory()
+	}
+}
+
+func writeTxHistory() {
+	newJSONData, err := json.MarshalIndent(txHistory, "", "    ")
+	if err != nil {
+		log.Fatalf("failed to marshal JSON: %v", err)
+	}
+	err = os.WriteFile("txHistory.json", newJSONData, 0644)
+	if err != nil {
+		log.Fatalf("failed to write JSON file: %v", err)
+	}
 }
 
 func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txStatusQueue chan TxStatus) {
@@ -48,6 +82,15 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 
 	nonce := <-nonceQueue
 
+	txStatus := TxStatus{
+		Tx:        "",
+		Nonce:     nonce,
+		Status:    "PENDING",
+		CreatedAt: time.Now(),
+	}
+
+	txHistory[address] = append(txHistory[address], txStatus)
+
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
@@ -57,17 +100,21 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	txStatus.Tx = signedTx.Hash().Hex()
+	txHistory[address] = append(txHistory[address], txStatus)
+
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	txStatus.Status = "SUCCESS"
+	txHistory[address] = append(txHistory[address], txStatus)
+	writeTxHistory()
+
 	str := fmt.Sprintf("mint done!!! tx sent: %s, nonce :%d\n", signedTx.Hash().Hex(), nonce)
 	fmt.Print(str)
 
-	txStatusQueue <- TxStatus{
-		Tx:        signedTx.Hash().Hex(),
-		Status:    "SUCCESS",
-		CreatedAt: time.Now(),
-	}
+	txStatusQueue <- txStatus
 }
