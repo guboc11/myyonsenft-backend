@@ -62,16 +62,8 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 		log.Fatal(err)
 	}
 
+	// 호출할 contract 주소
 	toAddress := common.HexToAddress(os.Getenv("CONTRACT_ADDRESS"))
-
-	value := big.NewInt(0)
-	gasLimit := uint64(10_000_000)
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	gasPrice.Mul(gasPrice, big.NewInt(3)) // test 용 : transaction 을 성공시키기 위해
-
 	// 호출할 함수와 인자 데이터 ABI 인코딩
 	abi, err := abi.JSON(strings.NewReader(os.Getenv("CONTRACT_ABI")))
 	if err != nil {
@@ -83,17 +75,25 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 		log.Fatal(err)
 	}
 
-	nonce := <-nonceQueue
+	value := big.NewInt(0)
+	gasLimit := uint64(10_000_000)
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	gasPrice.Mul(gasPrice, big.NewInt(3)) // test 용 : transaction 을 성공시키기 위해
 
+	// nonceQueue에서 nonce를 불러 옴
+	nonce := <-nonceQueue
 	txStatus := TxStatus{
 		Tx:        "",
 		Nonce:     nonce,
 		Status:    "PENDING",
 		CreatedAt: time.Now(),
 	}
-
 	txHistory[address] = append(txHistory[address], txStatus)
 
+	// transaction 생성 및 서명
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
@@ -103,19 +103,22 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	txStatus.Tx = signedTx.Hash().Hex()
 	txHistory[address] = append(txHistory[address], txStatus)
 
+	// signed transaction 전송
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// error 없으면 전송 성공
 	txStatus.Status = "SUCCESS"
 	txHistory[address] = append(txHistory[address], txStatus)
+	// txHistory 업데이트
 	writeTxHistory()
 
+	// 결과 출력 및 전송
 	str := fmt.Sprintf("mint done!!! tx sent: %s, nonce :%d\n", signedTx.Hash().Hex(), nonce)
 	fmt.Print(str)
 

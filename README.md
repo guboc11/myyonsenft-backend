@@ -38,7 +38,7 @@ go run main.go
 ## Query api
 ### /mint
 ```bash
-curl -X POST -d "" "http://localhost:8080/mint?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
+curl -X POST "http://localhost:8080/mint?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
 ```
 ### /balanceOf
 ```bash

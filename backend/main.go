@@ -43,7 +43,7 @@ func init() {
 	}
 	fmt.Println("currentNonce", currentNonce)
 
-	// make queue
+	// make queues
 	nonceQueue = make(chan uint64)
 	txStatusQueue = make(chan api.TxStatus)
 }
@@ -66,9 +66,8 @@ func main() {
 			currentNonce++
 
 			// JSON으로 변환하여 응답
-			txStatus := <-txStatusQueue
-
 			w.Header().Set("Content-Type", "application/json")
+			txStatus := <-txStatusQueue
 			json.NewEncoder(w).Encode(txStatus)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -88,11 +87,9 @@ func main() {
 		switch r.Method {
 		case http.MethodGet:
 			// JSON으로 변환하여 응답
-			balance := api.GetBalanceOf(client, address)
-
 			w.Header().Set("Content-Type", "application/json")
+			balance := api.GetBalanceOf(client, address)
 			json.NewEncoder(w).Encode(balance)
-
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -111,9 +108,8 @@ func main() {
 		switch r.Method {
 		case http.MethodGet:
 			// JSON으로 변환하여 응답
-			txHistory := api.GetTxHistory(client, address)
-
 			w.Header().Set("Content-Type", "application/json")
+			txHistory := api.GetTxHistory(client, address)
 			json.NewEncoder(w).Encode(txHistory)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
