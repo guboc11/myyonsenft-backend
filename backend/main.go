@@ -59,15 +59,21 @@ func main() {
 			return
 		}
 
-		go api.Mint(client, address, nonceQueue, txStatusQueue)
-		nonceQueue <- currentNonce
-		currentNonce++
+		switch r.Method {
+		case http.MethodPost:
+			go api.Mint(client, address, nonceQueue, txStatusQueue)
+			nonceQueue <- currentNonce
+			currentNonce++
 
-		// JSON으로 변환하여 응답
-		txStatus := <-txStatusQueue
+			// JSON으로 변환하여 응답
+			txStatus := <-txStatusQueue
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(txStatus)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(txStatus)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+
 	})
 
 	// /balanceOf endpoint
@@ -79,12 +85,18 @@ func main() {
 			json.NewEncoder(w).Encode("Invalid address format")
 			return
 		}
+		switch r.Method {
+		case http.MethodGet:
+			// JSON으로 변환하여 응답
+			balance := api.GetBalanceOf(client, address)
 
-		// JSON으로 변환하여 응답
-		balance := api.GetBalanceOf(client, address)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(balance)
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(balance)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+
 	})
 
 	// /history endpoint
@@ -96,12 +108,17 @@ func main() {
 			json.NewEncoder(w).Encode("Invalid address format")
 			return
 		}
+		switch r.Method {
+		case http.MethodGet:
+			// JSON으로 변환하여 응답
+			txHistory := api.GetTxHistory(client, address)
 
-		// JSON으로 변환하여 응답
-		txHistory := api.GetTxHistory(client, address)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(txHistory)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(txHistory)
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
