@@ -29,13 +29,13 @@ CONTRACT_ABI={contract_abi}
 CONTRACT_ADDRESS={contract_address}
 ```
 
-## Run api
+## Run API
 ```bash
 // check if localhost:8080 is open and available
 go run main.go
 ```
 
-## Query api
+## Query API
 ### /mint
 ```bash
 curl -X POST "http://localhost:8080/mint?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
