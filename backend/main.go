@@ -63,7 +63,7 @@ func main() {
 		case http.MethodPost:
 			go api.Mint(client, address, nonceQueue, txStatusQueue)
 			nonceQueue <- currentNonce
-			currentNonce++
+			currentNonce = <-nonceQueue
 
 			// JSON으로 변환하여 응답
 			w.Header().Set("Content-Type", "application/json")

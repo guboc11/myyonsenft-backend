@@ -75,16 +75,18 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 		log.Fatal(err)
 	}
 
+	// transaction 생성 위한 값들 생성
 	value := big.NewInt(0)
 	gasLimit := uint64(10_000_000)
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
-	gasPrice.Mul(gasPrice, big.NewInt(3)) // test 용 : transaction 을 성공시키기 위해
+	gasPrice.Mul(gasPrice, big.NewInt(4)) // test 용 : transaction 을 성공시키기 위해
 
-	// nonceQueue에서 nonce를 불러 옴
+	// nonceQueue에서 nonce를 불러 와서 1 추가한 값을 다시 보냄
 	nonce := <-nonceQueue
+	nonceQueue <- nonce + 1
 	txStatus := TxStatus{
 		Tx:        "",
 		Nonce:     nonce,
