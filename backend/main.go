@@ -75,7 +75,7 @@ func main() {
 	// /history endpoint
 	go http.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
 		address := r.URL.Query().Get("address")
-		api.GetHistory(client, address)
+		api.GetTxHistory(client, address)
 
 		// JSON으로 변환하여 응답
 		w.Header().Set("Content-Type", "application/json")
