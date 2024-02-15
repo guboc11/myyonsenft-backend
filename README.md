@@ -37,14 +37,14 @@ go run main.go
 
 ## Query api
 ### /mint
-```
-http://localhost:8080/mint?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145
+```bash
+curl -X POST -d "" "http://localhost:8080/mint?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
 ```
 ### /balanceOf
-```
-http://localhost:8080/balanceOf?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145
+```bash
+curl "http://localhost:8080/balanceOf?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
 ```
 ### /history
-```
-http://localhost:8080/history?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145
+```bash
+curl "http://localhost:8080/history?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
 ```
