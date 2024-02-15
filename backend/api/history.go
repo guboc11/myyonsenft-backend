@@ -1,13 +1,13 @@
 package api
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func GetTxHistory(client *ethclient.Client, address string) {
+func GetTxHistory(client *ethclient.Client, address string) []TxStatus {
+	_txHistory := []TxStatus{}
 	sort.Slice(txHistory[address], func(i, j int) bool {
 		// 먼저 CreatedAt 내림차순 정렬
 		if txHistory[address][i].CreatedAt.After(txHistory[address][j].CreatedAt) {
@@ -37,7 +37,9 @@ func GetTxHistory(client *ethclient.Client, address string) {
 		if i >= 100 {
 			break
 		}
-		fmt.Println(i, txStatus)
+		_txHistory = append(_txHistory, txStatus)
+		// fmt.Println(i, txStatus)
 	}
 
+	return _txHistory
 }
