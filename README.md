@@ -1,4 +1,4 @@
-# take-home-2023-guboc11
+# myyonseinft-backend
 
 ## Prerequisite
 ```
@@ -7,9 +7,9 @@ You have to install go
 
 ## Clone repository
 ```bash
-git clone https://github.com/planetarium/take-home-2023-guboc11.git
+git clone https://github.com/guboc11/myyonsenft-backend.git
 
-cd take-home-2023-guboc11/backend
+cd myyonseinft-backend/backend
 ```
 
 ## Download & install go packages
@@ -24,7 +24,7 @@ vi .env
 #### .env
 ```
 PRIVATE_KEY={your_ethereum_holeskey_network_wallet_private_key}
-DELIGATOR_ADDRESS={your_wallet_address}
+SENDER_ADDRESS={your_wallet_address}
 CONTRACT_ABI={contract_abi}
 CONTRACT_ADDRESS={contract_address}
 ```
@@ -38,13 +38,13 @@ go run main.go
 ## Query API
 ### /mint
 ```bash
-curl -X POST "http://localhost:8080/mint?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
+curl -X POST "http://localhost:8080/mint?address={CONTRACT_ADDRESS}"
 ```
 ### /balanceOf
 ```bash
-curl "http://localhost:8080/balanceOf?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
+curl "http://localhost:8080/balanceOf?address={CONTRACT_ADDRESS}"
 ```
 ### /history
 ```bash
-curl "http://localhost:8080/history?address=0xF8c847Fc824B441f0b4D9641371e6eD3f56CF145"
+curl "http://localhost:8080/history?address={CONTRACT_ADDRESS}"
 ```
