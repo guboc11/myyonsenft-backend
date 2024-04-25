@@ -68,8 +68,8 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 	nonce := <-nonceQueue
 	log.Println(DebuggingNumber, "AFTER nonce := <-nonceQueue", "in Mint()")
 
-	log.Println(DebuggingNumber, "0.5s time sleep")
-	time.Sleep(2000 * time.Millisecond)
+	// log.Println(DebuggingNumber, "0.5s time sleep")
+	// time.Sleep(2000 * time.Millisecond)
 
 	log.Println(DebuggingNumber, "BEFORE nonceQueue <- nonce + 1", "in Mint()")
 	// IMPORTANT : send 하고 바로 sent하는게 아니라 main()의 87~97라인 소화하고 sent가 되네 이거 분석!!
