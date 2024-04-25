@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -20,9 +21,12 @@ var nonceQueue chan uint64
 var txStatusQueue chan api.TxStatus
 var client *ethclient.Client
 
+var door chan uint64
+
 func init() {
 	// set log flags
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	// log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 
 	// load .env file
 	err := godotenv.Load(".env")
@@ -37,7 +41,7 @@ func init() {
 	}
 
 	// initialize nonce
-	currentNonce, err = client.PendingNonceAt(context.Background(), common.HexToAddress(os.Getenv("DELIGATOR_ADDRESS")))
+	currentNonce, err = client.PendingNonceAt(context.Background(), common.HexToAddress(os.Getenv("SENDER_ADDRESS")))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,12 +49,26 @@ func init() {
 
 	// make queues
 	nonceQueue = make(chan uint64)
+	// nonceQueue = make(chan uint64, 10)
 	txStatusQueue = make(chan api.TxStatus)
+
+	door = make(chan uint64, 1)
 }
 
 func main() {
+	log.Println(api.DebuggingNumber, "top of main")
+	go func() {
+		for {
+			fmt.Println()
+			time.Sleep(500 * time.Millisecond)
+		}
+	}()
 	// /mint endpoint
 	go http.HandleFunc("/mint", func(w http.ResponseWriter, r *http.Request) {
+		api.DebuggingNumber++
+		log.Println(api.DebuggingNumber, "top of mint endpoint")
+
+		log.Println(api.DebuggingNumber, "get address")
 		address := r.URL.Query().Get("address")
 		// ethereum address 유효성 검사
 		if !isValidEthereumAddress(address) {
@@ -59,20 +77,45 @@ func main() {
 			return
 		}
 
+		log.Println(api.DebuggingNumber, "switch method")
 		switch r.Method {
-		case http.MethodPost:
+		// case http.MethodPost:
+		case http.MethodGet:
+			log.Println(api.DebuggingNumber, "post method")
+
+			log.Println(api.DebuggingNumber, "BEFORE Mint()")
 			go api.Mint(client, address, nonceQueue, txStatusQueue)
+			// go api.Mint(client, address, nonceQueue, txStatusQueue, door)
+			log.Println(api.DebuggingNumber, "AFTER Mint()")
+
+			door <- 1
+
+			log.Println(api.DebuggingNumber, "BEFORE nonceQueue <- currentNonce")
 			nonceQueue <- currentNonce
+			log.Println(api.DebuggingNumber, "AFTER nonceQueue <- currentNonce")
+
+			// log.Println(api.DebuggingNumber, "0.5s time sleep")
+			// time.Sleep(500 * time.Millisecond)
+
+			log.Println(api.DebuggingNumber, "BEFORE currentNonce = <-nonceQueue")
 			currentNonce = <-nonceQueue
+			log.Println(api.DebuggingNumber, "AFTER currentNonce = <-nonceQueue")
+
+			var _ uint64 = <-door
+
+			// log.Println(api.DebuggingNumber, "0.5s time sleep")
+			// time.Sleep(500 * time.Millisecond)
 
 			// JSON으로 변환하여 응답
 			w.Header().Set("Content-Type", "application/json")
+			log.Println(api.DebuggingNumber, "BEFORE txStatus := <-txStatusQueue")
 			txStatus := <-txStatusQueue
+			log.Println(api.DebuggingNumber, "AFTER txStatus := <-txStatusQueue")
 			json.NewEncoder(w).Encode(txStatus)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-
+		log.Println(api.DebuggingNumber, "end of mint endpoint")
 	})
 
 	// /balanceOf endpoint

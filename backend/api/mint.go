@@ -26,6 +26,8 @@ type TxStatus struct {
 
 var txHistory map[string][]TxStatus
 
+var DebuggingNumber uint64
+
 func init() {
 	txHistory = make(map[string][]TxStatus)
 
@@ -43,6 +45,8 @@ func init() {
 		// txHistory.json 파일이 없으면 빈 값을 넣어 생성
 		writeTxHistory()
 	}
+
+	DebuggingNumber = 0
 }
 
 func writeTxHistory() {
@@ -57,6 +61,22 @@ func writeTxHistory() {
 }
 
 func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txStatusQueue chan TxStatus) {
+	// func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txStatusQueue chan TxStatus, door chan uint64) {
+	log.Println(DebuggingNumber, "top of Mint()", "in Mint()")
+	// nonceQueue에서 nonce를 불러 와서 1 추가한 값을 다시 보냄
+	log.Println(DebuggingNumber, "BEFORE nonce := <-nonceQueue", "in Mint()")
+	nonce := <-nonceQueue
+	log.Println(DebuggingNumber, "AFTER nonce := <-nonceQueue", "in Mint()")
+
+	log.Println(DebuggingNumber, "0.5s time sleep")
+	time.Sleep(2000 * time.Millisecond)
+
+	log.Println(DebuggingNumber, "BEFORE nonceQueue <- nonce + 1", "in Mint()")
+	// IMPORTANT : send 하고 바로 sent하는게 아니라 main()의 87~97라인 소화하고 sent가 되네 이거 분석!!
+	nonceQueue <- nonce + 1
+	log.Println(DebuggingNumber, "AFTER nonceQueue <- nonce + 1", "in Mint()")
+
+	log.Println(DebuggingNumber, "prepare to sign", "in Mint()")
 	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
 	if err != nil {
 		log.Fatal(err)
@@ -84,18 +104,18 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 	}
 	gasPrice.Mul(gasPrice, big.NewInt(4)) // test 용 : transaction 을 성공시키기 위해
 
-	// nonceQueue에서 nonce를 불러 와서 1 추가한 값을 다시 보냄
-	nonce := <-nonceQueue
-	nonceQueue <- nonce + 1
+	log.Println(DebuggingNumber, "new empty TxStatus", "in Mint()")
 	txStatus := TxStatus{
 		Tx:        "",
 		Nonce:     nonce,
 		Status:    "PENDING",
 		CreatedAt: time.Now(),
 	}
+	log.Println(DebuggingNumber, "append txHistory empty transaction", "in Mint()")
 	txHistory[address] = append(txHistory[address], txStatus)
 
 	// transaction 생성 및 서명
+	log.Println(DebuggingNumber, "new transaction and sign", "in Mint()")
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
@@ -109,20 +129,26 @@ func Mint(client *ethclient.Client, address string, nonceQueue chan uint64, txSt
 	txHistory[address] = append(txHistory[address], txStatus)
 
 	// signed transaction 전송
+	log.Println(DebuggingNumber, "BEFORE send signed transaction", "in Mint()")
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println(DebuggingNumber, "AFTER sent signed transaction", "in Mint()")
 
 	// error 없으면 전송 성공
 	txStatus.Status = "SUCCESS"
 	txHistory[address] = append(txHistory[address], txStatus)
 	// txHistory 업데이트
+	log.Println(DebuggingNumber, "BEFORE write tx history", "in Mint()")
 	writeTxHistory()
+	log.Println(DebuggingNumber, "AFTER wrote tx history", "in Mint()")
 
 	// 결과 출력 및 전송
 	str := fmt.Sprintf("mint done!!! tx sent: %s, nonce :%d\n", signedTx.Hash().Hex(), nonce)
 	fmt.Print(str)
 
+	log.Println(DebuggingNumber, "BEFORE txStatusQueue <- txStatus", "in Mint()")
 	txStatusQueue <- txStatus
+	log.Println(DebuggingNumber, "AFTER txStatusQueue <- txStatus", "in Mint()")
 }
