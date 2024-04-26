@@ -38,13 +38,13 @@ go run main.go
 ## Query API
 ### /mint
 ```bash
-curl -X POST "http://localhost:8080/mint?address={CONTRACT_ADDRESS}"
+curl -X POST "http://localhost:8080/mint?address={ACCOUNT_ADDRESS}"
 ```
 ### /balanceOf
 ```bash
-curl "http://localhost:8080/balanceOf?address={CONTRACT_ADDRESS}"
+curl "http://localhost:8080/balanceOf?address={ACCOUNT_ADDRESS}"
 ```
 ### /history
 ```bash
-curl "http://localhost:8080/history?address={CONTRACT_ADDRESS}"
+curl "http://localhost:8080/history?address={ACCOUNT_ADDRESS}"
 ```
