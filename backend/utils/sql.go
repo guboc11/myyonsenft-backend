@@ -46,6 +46,7 @@ func Query(queryStatement string) {
 }
 
 func AddTxHistory(address string, department string, tokenURI string, tx string) {
+	fmt.Println("AddTxHistory 시작")
 	// MySQL 데이터베이스 연결 정보
 	db, err := sql.Open("mysql", "root:myyonseinft@tcp(localhost:3306)/myyonseinft")
 	if err != nil {
@@ -54,10 +55,12 @@ func AddTxHistory(address string, department string, tokenURI string, tx string)
 	defer db.Close()
 
 	// 쿼리 실행
+	fmt.Println("INSERT 쿼리 실행 전")
 	result, err := db.Exec("INSERT INTO NFTs (address, department, tokenuri, tx) VALUES (?, ?, ?, ?)", address, department, tokenURI, tx)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("INSERT 쿼리 실행 완료")
 
 	// 영향을 받은 행의 수 확인
 	rowsAffected, err := result.RowsAffected()

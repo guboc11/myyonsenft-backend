@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"guboc11.com/m/utils"
 )
 
 type TxStatus struct {
@@ -153,7 +155,18 @@ func Mint(client *ethclient.Client, address string, tokenUri string, nonceQueue 
 	txHistory[address] = append(txHistory[address], txStatus)
 	// txHistory 업데이트
 	log.Println(DebuggingNumber, "tx history 쓰기 전", "in Mint()")
-	writeTxHistory()
+	// writeTxHistory()
+
+	// department 추출
+	pattern := `https://myyonseinft.s3.amazonaws.com/MAJOR/([^/]+)/json/.*`
+	re := regexp.MustCompile(pattern)
+	match := re.FindStringSubmatch(tokenUri)
+	var department string
+	if len(match) >= 2 {
+		department = match[1]
+	}
+
+	utils.AddTxHistory(address, department, tokenUri, string(signedTx.Hash().Hex()))
 	log.Println(DebuggingNumber, "tx history 쓰기 완료", "in Mint()")
 
 	// 결과 출력 및 전송
