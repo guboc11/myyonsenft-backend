@@ -47,7 +47,7 @@ func Query(queryStatement string) {
 
 func AddHistory(address string, department string, tokenURI string, tx string) {
 	// MySQL 데이터베이스 연결 정보
-	db, err := sql.Open("mysql", "username:password@tcp(localhost:3306)/myyonseinft")
+	db, err := sql.Open("mysql", "root:myyonseinft@tcp(localhost:3306)/myyonseinft")
 	if err != nil {
 		log.Fatal(err)
 	}
