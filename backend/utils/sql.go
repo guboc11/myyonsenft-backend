@@ -3,6 +3,7 @@ package utils
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -28,12 +29,15 @@ func Query(queryStatement string) {
 
 	// 결과 반복문으로 처리
 	for rows.Next() {
-		var id int
-		var name string
-		if err := rows.Scan(&id, &name); err != nil {
+		var address string
+		var department string
+		var tokenuri string
+		var tx string
+		var time time.Time
+		if err := rows.Scan(&address, &department, &tokenuri, &tx, &time); err != nil {
 			panic(err.Error())
 		}
-		fmt.Println(id, name)
+		fmt.Println(address, department, tokenuri, tx, time)
 	}
 	// 오류 체크
 	if err := rows.Err(); err != nil {
