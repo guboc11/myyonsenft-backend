@@ -165,6 +165,7 @@ func Mint(client *ethclient.Client, address string, tokenUri string, nonceQueue 
 	if len(match) >= 2 {
 		department = match[1]
 	}
+	fmt.Println("department", department)
 
 	utils.AddTxHistory(address, department, tokenUri, string(signedTx.Hash().Hex()))
 	log.Println(DebuggingNumber, "tx history 쓰기 완료", "in Mint()")
