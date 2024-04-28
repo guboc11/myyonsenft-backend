@@ -3,7 +3,7 @@ package utils
 import (
 	"database/sql"
 	"fmt"
-	"time"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -33,7 +33,7 @@ func Query(queryStatement string) {
 		var department string
 		var tokenuri string
 		var tx string
-		var time time.Time
+		var time []uint8
 		if err := rows.Scan(&address, &department, &tokenuri, &tx, &time); err != nil {
 			panic(err.Error())
 		}
@@ -43,4 +43,28 @@ func Query(queryStatement string) {
 	if err := rows.Err(); err != nil {
 		panic(err.Error())
 	}
+}
+
+func AddHistory(address string, department string, tokenURI string, tx string) {
+	// MySQL 데이터베이스 연결 정보
+	db, err := sql.Open("mysql", "username:password@tcp(localhost:3306)/myyonseinft")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	// 쿼리 실행
+	result, err := db.Exec("INSERT INTO NFTs (address, department, tokenuri, tx) VALUES (?, ?, ?, ?)", address, department, tokenURI, tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 영향을 받은 행의 수 확인
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("성공적으로 %d개의 행이 추가되었습니다.\n", rowsAffected)
+
 }

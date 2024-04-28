@@ -7,6 +7,7 @@ import (
 func TestSQL(t *testing.T) {
 
 	// fmt.Println("sdfsdflskdjflskdjf")
-	Query("SELECT * FROM NFTs;")
+	// Query("SELECT * FROM NFTs;")
+	AddHistory("address", "department", "tokenURI", "txaddress")
 
 }
