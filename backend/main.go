@@ -37,7 +37,8 @@ func init() {
 	// client, err = ethclient.Dial("https://rpc.holesky.ethpandaops.io")
 	// client, err = ethclient.Dial("https://eth-sepolia.api.onfinality.io/public")
 	// client, err = ethclient.Dial("https://ethereum-sepolia-rpc.allthatnode.com/6O9ObmNFU0WHoqRLekyfFR9pRb6IqBbi")
-	client, err = ethclient.Dial("https://polygon-mainnet.infura.io/v3/a4d72135ac2a4366892eba1ec2e5aaef")
+	// client, err = ethclient.Dial("https://polygon-mainnet.infura.io/v3/a4d72135ac2a4366892eba1ec2e5aaef")
+	client, err = ethclient.Dial("https://sepolia.infura.io/v3/a4d72135ac2a4366892eba1ec2e5aaef")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -163,7 +164,7 @@ func main() {
 
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":5555", nil))
 }
 
 func isValidEthereumAddress(address string) bool {
